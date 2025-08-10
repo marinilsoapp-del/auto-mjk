@@ -1,263 +1,386 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <title>Auto MJK - Controle de Combustível e Manutenção</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-    h1, h2, h3 { color: #333; }
-    .tabs { display: flex; margin-bottom: 20px; }
-    .tab { padding: 10px 20px; background: #ddd; margin-right: 5px; cursor: pointer; border-radius: 5px 5px 0 0; }
-    .tab.active { background: #4f46e5; color: white; font-weight: bold; }
-    .content { background: white; padding: 20px; border-radius: 0 5px 5px 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .card { background: #fafafa; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .card h3 { margin-top: 0; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
-    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
-    button { margin-top: 15px; padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #4338ca; }
-    .alert { color: #b91c1c; font-weight: bold; margin-top: 10px; }
-    textarea { font-family: monospace; }
-    .summary { margin-top: 20px; }
-    .summary p { margin: 5px 0; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Auto MJK - Controle Veículos</title>
+<style>
+  /* Reset básico */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background: #f5f6fa;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+  }
+  #app {
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 90vh;
+  }
+  header {
+    background: #4f46e5;
+    color: white;
+    padding: 15px 20px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  nav {
+    display: flex;
+    background: #ececec;
+  }
+  nav button {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s;
+    font-size: 1rem;
+  }
+  nav button.active {
+    background: #4f46e5;
+    color: white;
+  }
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+  form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
+  }
+  form input, form select, form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #bbb;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    font-family: inherit;
+  }
+  form input:focus, form select:focus, form textarea:focus {
+    border-color: #4f46e5;
+    outline: none;
+  }
+  button.submit-btn {
+    width: 100%;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 14px 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  button.submit-btn:hover {
+    background: #3b37b8;
+  }
+  .card {
+    background: #fafafa;
+    padding: 15px 18px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  }
+  .card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: #222;
+  }
+  .card p {
+    margin: 4px 0;
+    color: #444;
+    font-size: 0.95rem;
+  }
+  .alert {
+    color: #b91c1c;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+  .empty-state {
+    text-align: center;
+    color: #777;
+    font-style: italic;
+    margin-top: 40px;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+</style>
 </head>
 <body>
 
-  <h1>Auto MJK - Controle de Veículos</h1>
-
-  <div class="tabs">
-    <div class="tab active" data-tab="dashboard">Painel</div>
-    <div class="tab" data-tab="abastecimento">Abastecimento</div>
-    <div class="tab" data-tab="manutencao">Manutenção</div>
-    <div class="tab" data-tab="relatorios">Relatórios</div>
-  </div>
-
-  <div id="content" class="content"></div>
+<div id="app">
+  <header>Auto MJK - Controle Veículos</header>
+  <nav>
+    <button id="tab-dashboard" class="active" aria-controls="dashboard">Painel</button>
+    <button id="tab-veiculos" aria-controls="veiculos">Veículos</button>
+    <button id="tab-abastecimento" aria-controls="abastecimento">Abastecimento</button>
+    <button id="tab-manutencao" aria-controls="manutencao">Manutenção</button>
+  </nav>
+  <main id="main-content" tabindex="0">
+    <!-- Conteúdo dinâmico aqui -->
+  </main>
+</div>
 
 <script>
 (() => {
-  const cars = ["Carro 1", "Carro 2", "Carro 3", "Carro 4"];
+  const app = document.getElementById('app');
+  const main = document.getElementById('main-content');
+
+  // Estado
   let state = {
-    fuels: [],
-    services: []
+    veiculos: [],   // {id, marca, modelo, ano, descricao}
+    abastecimentos: [], // {id, veiculoId, data, km, litros, valorTotal, tipoCombustivel}
+    manutencoes: [], // {id, veiculoId, data, tipoServico, km, custo, observacoes}
   };
-  let currentTab = 'dashboard';
 
-  function $(id) { return document.getElementById(id); }
-  function $all(selector) { return [...document.querySelectorAll(selector)]; }
+  // IDs para evitar conflito (simples)
+  function generateId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+  }
 
-  // Helper para salvar e carregar do localStorage
-  function save() {
+  // Salvar e carregar localStorage
+  function saveState() {
     localStorage.setItem('autoMJKState', JSON.stringify(state));
   }
-  function load() {
+  function loadState() {
     const saved = localStorage.getItem('autoMJKState');
-    if(saved) state = JSON.parse(saved);
-  }
-
-  function renderTabs() {
-    $all('.tab').forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.tab === currentTab);
-    });
-  }
-
-  function calcAvgConsumption(carIndex){
-    const fuels = state.fuels.filter(f=>f.carIndex===carIndex).sort((a,b)=>a.km-b.km);
-    if(fuels.length < 2) return null;
-    let totalKm = 0;
-    let totalLiters = 0;
-    for(let i=1; i<fuels.length; i++){
-      const kmDiff = fuels[i].km - fuels[i-1].km;
-      if(kmDiff > 0){
-        totalKm += kmDiff;
-        totalLiters += fuels[i].liters;
+    if (saved) {
+      try {
+        state = JSON.parse(saved);
+      } catch {
+        state = { veiculos: [], abastecimentos: [], manutencoes: [] };
       }
     }
-    if(totalLiters === 0) return null;
-    return (totalKm / totalLiters).toFixed(2);
   }
 
-  function calcMonthlyFuelCost(carIndex){
+  // Formata data para dd/mm/aaaa
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '-';
+    return d.toLocaleDateString('pt-BR');
+  }
+
+  // Busca veículo por id
+  function getVeiculo(id) {
+    return state.veiculos.find(v => v.id === id);
+  }
+
+  // Calcula consumo médio do veículo
+  function calcConsumoMedio(veiculoId) {
+    const abts = state.abastecimentos.filter(a => a.veiculoId === veiculoId).sort((a,b)=>new Date(a.data) - new Date(b.data));
+    if (abts.length < 2) return null;
+    let totalKm = 0;
+    let totalLitros = 0;
+    for(let i=1; i < abts.length; i++) {
+      let kmDiff = abts[i].km - abts[i-1].km;
+      if(kmDiff > 0) {
+        totalKm += kmDiff;
+        totalLitros += abts[i].litros;
+      }
+    }
+    if(totalLitros === 0) return null;
+    return (totalKm / totalLitros).toFixed(2);
+  }
+
+  // Calcula gasto mensal com abastecimento
+  function calcGastoMensalAbastecimento(veiculoId) {
     const now = new Date();
-    return state.fuels.filter(f=>{
-      if(f.carIndex!==carIndex) return false;
-      const d = new Date(f.date);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).reduce((acc,f)=> acc + (f.total || 0), 0).toFixed(2);
+    return state.abastecimentos
+      .filter(a => a.veiculoId === veiculoId && new Date(a.data).getMonth() === now.getMonth() && new Date(a.data).getFullYear() === now.getFullYear())
+      .reduce((acc, a) => acc + (a.valorTotal || 0), 0)
+      .toFixed(2);
   }
 
-  function calcMonthlyServiceCost(carIndex){
+  // Calcula gasto mensal com manutenção
+  function calcGastoMensalManutencao(veiculoId) {
     const now = new Date();
-    return state.services.filter(s=>{
-      if(s.carIndex!==carIndex) return false;
-      const d = new Date(s.date);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).reduce((acc,s)=> acc + (s.cost || 0), 0).toFixed(2);
+    return state.manutencoes
+      .filter(m => m.veiculoId === veiculoId && new Date(m.data).getMonth() === now.getMonth() && new Date(m.data).getFullYear() === now.getFullYear())
+      .reduce((acc, m) => acc + (m.custo || 0), 0)
+      .toFixed(2);
   }
 
-  function renderDashboard() {
+  // Renderizações das telas
+
+  function renderPainel() {
     const container = document.createElement('div');
-    cars.forEach((car, i) => {
-      const card = document.createElement('div');
+    container.setAttribute('role','region');
+    container.setAttribute('aria-label','Painel resumo dos veículos');
+
+    if(state.veiculos.length === 0) {
+      container.innerHTML = `<p class="empty-state">Nenhum veículo cadastrado. Vá na aba "Veículos" para adicionar.</p>`;
+      return container;
+    }
+
+    state.veiculos.forEach(v => {
+      const card = document.createElement('section');
       card.className = 'card';
-      const avgCons = calcAvgConsumption(i);
-      const fuelCost = calcMonthlyFuelCost(i);
-      const serviceCost = calcMonthlyServiceCost(i);
+      const consumo = calcConsumoMedio(v.id);
+      const gastoCombustivel = calcGastoMensalAbastecimento(v.id);
+      const gastoManutencao = calcGastoMensalManutencao(v.id);
+      const totalGasto = (parseFloat(gastoCombustivel) + parseFloat(gastoManutencao)).toFixed(2);
+
+      // Últimos registros
+      const ultimoAbt = state.abastecimentos
+        .filter(a => a.veiculoId === v.id)
+        .sort((a,b) => new Date(b.data) - new Date(a.data))[0];
+
+      const ultimaManut = state.manutencoes
+        .filter(m => m.veiculoId === v.id)
+        .sort((a,b) => new Date(b.data) - new Date(a.data))[0];
 
       card.innerHTML = `
-        <h3>${car}</h3>
-        <p>Consumo médio: ${avgCons ? avgCons + " km/l" : "--"}</p>
-        <p>Gasto com combustível (mês): R$ ${fuelCost}</p>
-        <p>Gasto com manutenção (mês): R$ ${serviceCost}</p>
-        <p>Total gasto no mês: R$ ${(parseFloat(fuelCost) + parseFloat(serviceCost)).toFixed(2)}</p>
+        <h3>${v.marca} ${v.modelo} (${v.ano})</h3>
+        <p><strong>Descrição:</strong> ${v.descricao || '-'}</p>
+        <p><strong>Consumo médio:</strong> ${consumo ? consumo + ' km/l' : '-'}</p>
+        <p><strong>Gasto combustível (mês):</strong> R$ ${gastoCombustivel}</p>
+        <p><strong>Gasto manutenção (mês):</strong> R$ ${gastoManutencao}</p>
+        <p><strong>Total gasto (mês):</strong> R$ ${totalGasto}</p>
+        <p><strong>Último abastecimento:</strong> ${ultimoAbt ? formatDate(ultimoAbt.data) + ` - ${ultimoAbt.km} km` : '-'}</p>
+        <p><strong>Última manutenção:</strong> ${ultimaManut ? formatDate(ultimaManut.data) + ` - ${ultimaManut.tipoServico}` : '-'}</p>
       `;
       container.appendChild(card);
     });
     return container;
   }
 
+  function renderVeiculos() {
+    const container = document.createElement('div');
+    container.setAttribute('role','region');
+    container.setAttribute('aria-label','Cadastro de veículos');
+
+    const form = document.createElement('form');
+    form.setAttribute('aria-label', 'Formulário de cadastro de veículo');
+    form.innerHTML = `
+      <h2>Adicionar Veículo</h2>
+      <label for="marca">Marca</label>
+      <input id="marca" name="marca" type="text" placeholder="Ex: Toyota" required autocomplete="off"/>
+      <label for="modelo">Modelo</label>
+      <input id="modelo" name="modelo" type="text" placeholder="Ex: Corolla" required autocomplete="off"/>
+      <label for="ano">Ano</label>
+      <input id="ano" name="ano" type="number" min="1900" max="${new Date().getFullYear()}" placeholder="Ex: 2020" required autocomplete="off"/>
+      <label for="descricao">Descrição</label>
+      <textarea id="descricao" name="descricao" placeholder="Ex: Carro para uso diário" rows="3"></textarea>
+      <button type="submit" class="submit-btn">Salvar Veículo</button>
+    `;
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const marca = form.marca.value.trim();
+      const modelo = form.modelo.value.trim();
+      const ano = form.ano.value.trim();
+      const descricao = form.descricao.value.trim();
+
+      if(!marca || !modelo || !ano) {
+        alert('Por favor, preencha os campos obrigatórios!');
+        return;
+      }
+      const veiculo = {
+        id: generateId(),
+        marca, modelo, ano: parseInt(ano), descricao
+      };
+      state.veiculos.push(veiculo);
+      saveState();
+      alert('Veículo cadastrado com sucesso!');
+      form.reset();
+      renderMain(); // atualiza a lista
+    };
+
+    container.appendChild(form);
+
+    // Lista veículos cadastrados
+    const lista = document.createElement('div');
+    lista.setAttribute('aria-label', 'Lista de veículos cadastrados');
+    lista.style.marginTop = '25px';
+
+    if(state.veiculos.length === 0) {
+      lista.innerHTML = `<p class="empty-state">Nenhum veículo cadastrado.</p>`;
+    } else {
+      state.veiculos.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <h3>${v.marca} ${v.modelo} (${v.ano})</h3>
+          <p>${v.descricao || '-'}</p>
+          <button aria-label="Excluir veículo ${v.marca} ${v.modelo}" data-id="${v.id}" style="background:#e02424; border:none; color:white; border-radius:6px; padding:6px 12px; cursor:pointer; margin-top:6px;">Excluir</button>
+        `;
+        lista.appendChild(div);
+      });
+    }
+    container.appendChild(lista);
+
+    // Excluir veículo
+    lista.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.id;
+        if(confirm('Tem certeza que deseja excluir este veículo? Todos os registros de abastecimento e manutenção relacionados também serão removidos.')) {
+          state.veiculos = state.veiculos.filter(v => v.id !== id);
+          state.abastecimentos = state.abastecimentos.filter(a => a.veiculoId !== id);
+          state.manutencoes = state.manutencoes.filter(m => m.veiculoId !== id);
+          saveState();
+          renderMain();
+        }
+      }
+    });
+
+    return container;
+  }
+
   function renderAbastecimento() {
     const container = document.createElement('div');
-    container.innerHTML = `<h2>Registrar Abastecimento</h2>`;
+    container.setAttribute('role','region');
+    container.setAttribute('aria-label','Registro de abastecimento');
 
-    const form = document.createElement('form');
-    form.innerHTML = `
-      <label>Carro:
-        <select id="fuel-car">
-          ${cars.map((car,i)=>`<option value="${i}">${car}</option>`).join('')}
-        </select>
-      </label>
-      <label>Data:
-        <input type="date" id="fuel-date" value="${new Date().toISOString().slice(0,10)}" required />
-      </label>
-      <label>Quilometragem atual:</label>
-      <input type="number" id="fuel-km" min="0" required />
-      <label>Litros abastecidos:</label>
-      <input type="number" step="0.01" id="fuel-liters" min="0" required />
-      <label>Valor total (R$):</label>
-      <input type="number" step="0.01" id="fuel-total" min="0" required />
-      <label>Tipo de combustível:</label>
-      <input type="text" id="fuel-type" placeholder="Gasolina, Etanol, Diesel..." />
-      <button type="submit">Salvar</button>
-    `;
-
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      const newFuel = {
-        carIndex: parseInt(form.querySelector('#fuel-car').value),
-        date: form.querySelector('#fuel-date').value,
-        km: parseFloat(form.querySelector('#fuel-km').value),
-        liters: parseFloat(form.querySelector('#fuel-liters').value),
-        total: parseFloat(form.querySelector('#fuel-total').value),
-        type: form.querySelector('#fuel-type').value.trim()
-      };
-      state.fuels.push(newFuel);
-      save();
-      alert('Abastecimento salvo!');
-      renderMain();
-    };
-
-    container.appendChild(form);
-    return container;
-  }
-
-  function renderManutencao() {
-    const container = document.createElement('div');
-    container.innerHTML = `<h2>Registrar Manutenção</h2>`;
-
-    const form = document.createElement('form');
-    form.innerHTML = `
-      <label>Carro:
-        <select id="service-car">
-          ${cars.map((car,i)=>`<option value="${i}">${car}</option>`).join('')}
-        </select>
-      </label>
-      <label>Data:
-        <input type="date" id="service-date" value="${new Date().toISOString().slice(0,10)}" required />
-      </label>
-      <label>Tipo de serviço:</label>
-      <input type="text" id="service-type" required />
-      <label>Quilometragem atual:</label>
-      <input type="number" id="service-km" min="0" required />
-      <label>Custo (R$):</label>
-      <input type="number" step="0.01" id="service-cost" min="0" required />
-      <label>Observações:</label>
-      <textarea id="service-notes" rows="3"></textarea>
-      <button type="submit">Salvar</button>
-    `;
-
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      const newService = {
-        carIndex: parseInt(form.querySelector('#service-car').value),
-        date: form.querySelector('#service-date').value,
-        type: form.querySelector('#service-type').value.trim(),
-        km: parseFloat(form.querySelector('#service-km').value),
-        cost: parseFloat(form.querySelector('#service-cost').value),
-        notes: form.querySelector('#service-notes').value.trim()
-      };
-      state.services.push(newService);
-      save();
-      alert('Manutenção salva!');
-      renderMain();
-    };
-
-    container.appendChild(form);
-    return container;
-  }
-
-  function renderRelatorios() {
-    const container = document.createElement('div');
-    container.innerHTML = `<h2>Dados Salvos (JSON)</h2>`;
-
-    const preFuels = document.createElement('textarea');
-    preFuels.rows = 10;
-    preFuels.style.width = "100%";
-    preFuels.readOnly = true;
-    preFuels.textContent = JSON.stringify(state.fuels, null, 2);
-
-    const preServices = document.createElement('textarea');
-    preServices.rows = 10;
-    preServices.style.width = "100%";
-    preServices.readOnly = true;
-    preServices.textContent = JSON.stringify(state.services, null, 2);
-
-    container.appendChild(document.createElement('h3')).textContent = "Abastecimentos";
-    container.appendChild(preFuels);
-    container.appendChild(document.createElement('h3')).textContent = "Manutenções";
-    container.appendChild(preServices);
-
-    return container;
-  }
-
-  function renderMain() {
-    const content = document.getElementById('content');
-    content.innerHTML = '';
-    renderTabs();
-
-    let view;
-    switch(currentTab) {
-      case 'dashboard': view = renderDashboard(); break;
-      case 'abastecimento': view = renderAbastecimento(); break;
-      case 'manutencao': view = renderManutencao(); break;
-      case 'relatorios': view = renderRelatorios(); break;
+    if(state.veiculos.length === 0) {
+      container.innerHTML = `<p class="empty-state">Cadastre um veículo primeiro na aba "Veículos".</p>`;
+      return container;
     }
-    content.appendChild(view);
-  }
 
-  // Configura clique das tabs
-  $all('.tab').forEach(tab => {
-    tab.onclick = () => {
-      currentTab = tab.dataset.tab;
-      renderMain();
-    };
-  });
-
-  load();
-  renderMain();
-})();
-</script>
-
-</body>
-</html>
+    const form = document.createElement('form');
+    form.setAttribute('aria-label','Formulário de registro de abastecimento');
+    form.innerHTML = `
+      <h2>Registrar Abastecimento</h2>
+      <label for="veiculoAbt">Veículo</label>
+      <select id="veiculoAbt" required>
+        ${state.veiculos.map(v=>`<option value="${v.id}">${v.marca} ${v.modelo} (${v.ano})</option>`).join('')}
+      </select>
+      <label for="dataAbt">Data</label>
+      <input type="date" id="dataAbt" value="${new Date().toISOString().slice(0,10)}" required />
+      <label for="kmAbt">Quilometragem atual</label>
+      <input type="number" id="kmAbt" min="0" required />
+      <label for="litrosAbt">Litros abastecidos</label>
+      <input type="number" id="litrosAbt" min="0" step="0.01" required />
+      <label for="valorAbt">Valor total (R$)</label>
+      <input type="number" id="valorAbt" min="0"
